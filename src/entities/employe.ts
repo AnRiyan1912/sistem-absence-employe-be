@@ -79,9 +79,12 @@ export class EmployeModel extends Entity {
   getAll(): Promise<any> {
     throw new Error("Method not implemented.");
   }
-  async getByUserId(id: string): Promise<Employe> {
-    const findEmploye: Employe = await EmployeModel.prisma
-      .$queryRaw`SELECT * from Employe where userId = ${id}`;
+  async getByUserId(id: number): Promise<Employe> {
+    const findEmploye = await EmployeModel.prisma.employe.findUnique({
+      where: {
+        userId: id,
+      },
+    });
     if (!findEmploye) {
       throw new Error("Employe not found with user id: " + id);
     }

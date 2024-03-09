@@ -13,6 +13,7 @@ export class UserModel extends Entity {
   private username: string;
   private email: string;
   private role: string;
+  private password: string;
   private craetedAt: Date;
   private updatedAt: Date;
   constructor() {
@@ -21,6 +22,7 @@ export class UserModel extends Entity {
     this.username = "";
     this.email = "";
     this.role = "";
+    this.password = "";
     this.craetedAt = new Date();
     this.updatedAt = new Date();
   }
@@ -36,13 +38,15 @@ export class UserModel extends Entity {
         password: req.body.password,
         role: req.body.role,
       };
-      const checkExistEmail = await UserModel.prisma
-        .$queryRaw`SELECT * FROM User where email = ${dataReq.email};`;
+      const checkExistEmail = await UserModel.prisma.user.findUnique({
+        where: { email: dataReq.email },
+      });
       if (checkExistEmail) {
         throw new Error("Email already use");
       }
-      const checkExistUsername = await UserModel.prisma
-        .$queryRaw`SELECT * FROM User where username = ${dataReq.username};`;
+      const checkExistUsername = await UserModel.prisma.user.findUnique({
+        where: { username: dataReq.username },
+      });
       if (checkExistUsername) {
         throw new Error("Username already use");
       }
@@ -56,6 +60,7 @@ export class UserModel extends Entity {
         username: createUser[0].username,
         email: createUser[0].email,
         role: createUser[0].role,
+        password: createUser[0].password,
         createdAt: createUser[0].createdAt,
         updatedAt: createUser[0].updatedAt,
       });
@@ -86,20 +91,17 @@ export class UserModel extends Entity {
   async getByUserNameOrEmail(req: Request, res: Response): Promise<any> {
     try {
       validationFindUserLoggin(req, res);
-      const { email, username } = req.body;
-      const findUser: User = await UserModel.prisma
-        .$queryRaw`SELECT * FROM User WHERE email = ${email} OR username = ${username}`;
+      console.log(req.body);
+      const { usernameOrEmail } = req.body;
+      const findUser = await UserModel.prisma.user.findFirst({
+        where: {
+          OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
+        },
+      });
       if (!findUser) {
         throw new Error("unregistered users");
       }
-      this.setUser({
-        id: findUser.id,
-        username: findUser.username,
-        email: findUser.email,
-        role: findUser.role,
-        createdAt: findUser.createdAt,
-        updatedAt: findUser.updatedAt,
-      });
+      return findUser;
     } catch (error: any) {
       res.status(400).json({ status: 400, message: error.message });
     }
@@ -119,6 +121,7 @@ export class UserModel extends Entity {
       username: this.username,
       email: this.email,
       role: this.role,
+      password: this.password,
       createdAt: this.craetedAt,
       updatedAt: this.updatedAt,
     };

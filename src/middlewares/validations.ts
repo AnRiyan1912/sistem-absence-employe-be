@@ -34,11 +34,8 @@ export const validationEmployee = (req: Request, res: Response) => {
 };
 
 export const validationFindUserLoggin = (req: Request, res: Response) => {
-  if (req.body.username == undefined || req.body.username == "") {
+  if (req.body.usernameOrEmail == undefined || req.body.usernameOrEmail == "") {
     throw new Error("username is empety");
-  }
-  if (req.body.email == undefined || req.body.email == "") {
-    throw new Error("email is empety");
   }
   if (req.body.password == undefined || req.body.password == "") {
     throw new Error("passwords is empety");
