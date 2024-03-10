@@ -91,7 +91,6 @@ export class UserModel extends Entity {
   async getByUserNameOrEmail(req: Request, res: Response): Promise<any> {
     try {
       validationFindUserLoggin(req, res);
-      console.log(req.body);
       const { usernameOrEmail } = req.body;
       const findUser = await UserModel.prisma.user.findFirst({
         where: {
