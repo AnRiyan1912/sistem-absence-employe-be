@@ -1,4 +1,4 @@
-import e, { Request, Response } from "express";
+import e, { NextFunction, Request, Response } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 import { Entity } from "./entity";
@@ -30,46 +30,38 @@ export class UserModel extends Entity {
     req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>,
     res: Response<any, Record<string, any>>
   ): Promise<void> {
-    try {
-      validationUser(req, res);
-      const dataReq = {
-        username: req.body.username,
-        email: req.body.email,
-        password: req.body.password,
-        role: req.body.role,
-      };
-      const checkExistEmail = await UserModel.prisma.user.findUnique({
-        where: { email: dataReq.email },
-      });
-      if (checkExistEmail) {
-        throw new Error("Email already use");
-      }
-      const checkExistUsername = await UserModel.prisma.user.findUnique({
-        where: { username: dataReq.username },
-      });
-      if (checkExistUsername) {
-        throw new Error("Username already use");
-      }
-      const createUser = await UserModel.prisma.$transaction([
-        UserModel.prisma.user.create({
-          data: dataReq,
-        }),
-      ]);
-      this.setUser({
-        id: createUser[0].id,
-        username: createUser[0].username,
-        email: createUser[0].email,
-        role: createUser[0].role,
-        password: createUser[0].password,
-        createdAt: createUser[0].createdAt,
-        updatedAt: createUser[0].updatedAt,
-      });
-    } catch (error: any) {
-      res.status(400).json({ statusCode: 400, message: error.message });
-      await UserModel.prisma.$executeRaw`ROLLBACK;`;
-    } finally {
-      await UserModel.prisma.$disconnect;
+    const dataReq = {
+      username: req.body.username,
+      email: req.body.email,
+      password: req.body.password,
+      role: req.body.role,
+    };
+    const checkExistEmail = await UserModel.prisma.user.findUnique({
+      where: { email: dataReq.email },
+    });
+    if (checkExistEmail) {
+      throw new Error("Email already use");
     }
+    const checkExistUsername = await UserModel.prisma.user.findUnique({
+      where: { username: dataReq.username },
+    });
+    if (checkExistUsername) {
+      throw new Error("Username already use");
+    }
+    const createUser = await UserModel.prisma.$transaction([
+      UserModel.prisma.user.create({
+        data: dataReq,
+      }),
+    ]);
+    this.setUser({
+      id: createUser[0].id,
+      username: createUser[0].username,
+      email: createUser[0].email,
+      role: createUser[0].role,
+      password: createUser[0].password,
+      createdAt: createUser[0].createdAt,
+      updatedAt: createUser[0].updatedAt,
+    });
   }
   update(
     req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>,
@@ -89,21 +81,17 @@ export class UserModel extends Entity {
     throw new Error("Method not implemented.");
   }
   async getByUserNameOrEmail(req: Request, res: Response): Promise<any> {
-    try {
-      validationFindUserLoggin(req, res);
-      const { usernameOrEmail } = req.body;
-      const findUser = await UserModel.prisma.user.findFirst({
-        where: {
-          OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
-        },
-      });
-      if (!findUser) {
-        throw new Error("unregistered users");
-      }
-      return findUser;
-    } catch (error: any) {
-      res.status(400).json({ status: 400, message: error.message });
+    validationFindUserLoggin(req, res);
+    const { usernameOrEmail } = req.body;
+    const findUser = await UserModel.prisma.user.findFirst({
+      where: {
+        OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
+      },
+    });
+    if (!findUser) {
+      throw new Error("unregistered users");
     }
+    return findUser;
   }
   setUser(user: User): void {
     this.id = user.id;

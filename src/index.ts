@@ -1,10 +1,11 @@
 import { Application } from "express";
 import { routes } from "./routes";
-import { authenticate } from "./middlewares/auth";
 
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
+// const bodyParser = require("body-parser");
+export const fs = require("fs");
 
 dotenv.config();
 
@@ -12,10 +13,10 @@ const app: Application = express();
 const PORT = process.env.PORT;
 
 app.use(express.json());
-app.use(cors());
+// app.use(bodyParser.urlencoded({ extended: false}));
+app.use(cors({ origin: "http://localhost:5173" }));
+// app.use(authenticate);
 app.use("/auth", routes.authRoute);
-
-app.use(authenticate);
 app.get("/post", (req, res) => {
   res.send("INI content POST");
 });

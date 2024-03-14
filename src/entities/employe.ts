@@ -4,7 +4,6 @@ import { ParsedQs } from "qs";
 import { Entity } from "./entity";
 import { validationEmployee } from "../middlewares/validations";
 import { Employe } from "../models/employe";
-import { UserModel } from "./user";
 
 export class EmployeModel extends Entity {
   private id: number;
@@ -30,36 +29,28 @@ export class EmployeModel extends Entity {
     req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>,
     res: Response<any, Record<string, any>>
   ): Promise<any> {
-    try {
-      validationEmployee(req, res);
-      const dataReq = {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        age: req.body.age,
-        address: req.body.address,
-        userId: req.body.userId,
-      };
-      const createEmploye = await EmployeModel.prisma.$transaction([
-        EmployeModel.prisma.employe.create({
-          data: dataReq,
-        }),
-      ]);
-      this.setEmploye({
-        id: createEmploye[0].id,
-        firstName: createEmploye[0].firstName,
-        lastName: createEmploye[0].lastName,
-        age: createEmploye[0].age,
-        address: createEmploye[0].address,
-        userId: createEmploye[0].userId,
-        createdAt: createEmploye[0].createdAt,
-        updatedAt: createEmploye[0].updatedAt,
-      });
-    } catch (error: any) {
-      res.status(400).json({ statusCode: 400, message: error.message });
-      await EmployeModel.prisma.$executeRaw`ROLLBACK;`;
-    } finally {
-      await EmployeModel.prisma.$disconnect();
-    }
+    const dataReq = {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      age: parseInt(req.body.age),
+      address: req.body.address,
+      userId: req.body.userId,
+    };
+    const createEmploye = await EmployeModel.prisma.$transaction([
+      EmployeModel.prisma.employe.create({
+        data: dataReq,
+      }),
+    ]);
+    this.setEmploye({
+      id: createEmploye[0].id,
+      firstName: createEmploye[0].firstName,
+      lastName: createEmploye[0].lastName,
+      age: createEmploye[0].age,
+      address: createEmploye[0].address,
+      userId: createEmploye[0].userId,
+      createdAt: createEmploye[0].createdAt,
+      updatedAt: createEmploye[0].updatedAt,
+    });
   }
   update(
     req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>,

@@ -43,6 +43,14 @@ model EmployeAbsence {
   updatedAt DateTime @updatedAt
 }
 
+model ForgotPassword {
+  id Int @id @default(autoincrement())
+  email String
+  verificationCode Int
+
+
+}
+
 enum Role {
   ADMIN
   PEGAWAI

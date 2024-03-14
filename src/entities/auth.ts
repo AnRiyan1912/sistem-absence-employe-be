@@ -1,36 +1,42 @@
 import { Request, Response } from "express";
 import { comparePassword, hashPassword } from "../utils/bcrypt";
-import { Session } from "express-session";
 import { EmployeModel } from "./employe";
 import { UserModel } from "./user";
-import { CustomeSession } from "../models/session";
+import {
+  validationEmployee,
+  validationForgotPassword,
+  validationUser,
+} from "../middlewares/validations";
+import { sendMailMessageVerification } from "../utils/sendMailMessage";
+import { MathRandomSixDigist } from "../utils/mathRandom";
+
 const jwt = require("jsonwebtoken");
 
 export class Auth {
-  // user: UserModel;
-  // employe: EmployeModel;
-  // constructor() {
-  //   this.user = new UserModel();
-  //   this.employe = new EmployeModel();
-  // }
+  private user: UserModel;
+  private employe: EmployeModel;
+  constructor() {
+    this.user = new UserModel();
+    this.employe = new EmployeModel();
+  }
   async register(req: Request, res: Response): Promise<void> {
     try {
+      validationUser(req, res);
       req.body.password = await hashPassword(req.body.password);
-      const user = new UserModel();
-      await user.save(req, res);
-      const responseCreateUser = user.getUser();
-
+      await this.user.save(req, res);
+      const responseCreateUser = this.user.getUser();
       req.body.userId = responseCreateUser.id;
-      const employe = new EmployeModel();
-      await employe.save(req, res);
-      const responseCreateEmploye = employe.getEmploye();
+
+      validationEmployee(req, res);
+      await this.employe.save(req, res);
+      const responseCreateEmploye = this.employe.getEmploye();
       res.status(200).json({
         status: 200,
         message: "Success register",
         data: { ...responseCreateUser, employe: responseCreateEmploye },
       });
-    } catch (error: any) {
-      res.status(400).json({ status: 400, message: error.message });
+    } catch (err: any) {
+      res.status(400).json({ message: err.message });
     }
   }
   async login(req: Request, res: Response): Promise<void> {
@@ -67,6 +73,15 @@ export class Auth {
       res.status(400).json({ status: 400, message: error.message });
     }
   }
+  async forgotPassword(req: Request, res: Response) {
+    try {
+      validationForgotPassword(req, res);
+      const emailUser = req.body.email;
+      sendMailMessageVerification(emailUser, MathRandomSixDigist);
+    } catch (err: any) {
+      res.status(400).json({ status: 400, message: err.message });
+    }
+  }
   refreshToken(req: Request, res: Response) {
     const refreshToken = req.headers.cookie?.split("=")[1];
 
@@ -78,7 +93,7 @@ export class Auth {
       const accessToken = jwt.sign(
         { userId: decoded.id, role: decoded.role },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "10m" }
       );
       res
         .cookie("refreshToken", refreshToken, {
@@ -86,7 +101,8 @@ export class Auth {
           sameSite: "strict",
         })
         .header("Authorization", `Bearer ${accessToken}`)
-        .sendStatus(200);
+        .status(200)
+        .json({ accessToken: accessToken });
     } catch (error: any) {
       return res.status(400).send("Invalid Token");
     }
