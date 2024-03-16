@@ -9,9 +9,9 @@ export const HTML_SEND_VERIFICATION_CODE = `<!DOCTYPE html>
     <title>Forgot Password Code</title>
   </head>
   <body>
-    <h2>Forgot Code verify</h2>
+    <h2>Forgot Code</h2>
     <p>Your verification code</p>
-    <h3>{{verification_code}}</h3>
+    <h3>verification_code</h3>
     <p>If you didn't request this, you can ignore this email.</p>
     <p>Thank you!</p>
   </body>

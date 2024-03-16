@@ -4,7 +4,7 @@ import { ParsedQs } from "qs";
 import { Entity } from "./entity";
 import {
   validationFindUserLoggin,
-  validationUser,
+  validationForgotPassword,
 } from "../middlewares/validations";
 import { User } from "../models/user";
 
@@ -82,16 +82,39 @@ export class UserModel extends Entity {
   }
   async getByUserNameOrEmail(req: Request, res: Response): Promise<any> {
     validationFindUserLoggin(req, res);
-    const { usernameOrEmail } = req.body;
+    const { usernameOrEmail, email } = req.body;
     const findUser = await UserModel.prisma.user.findFirst({
       where: {
-        OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
+        OR: [
+          { username: usernameOrEmail },
+          { email: usernameOrEmail || email },
+        ],
       },
     });
     if (!findUser) {
-      throw new Error("unregistered users");
+      throw new Error("Unregistered users");
     }
     return findUser;
+  }
+  async getByUserEmail(req: Request, res: Response): Promise<any> {
+    validationForgotPassword(req, res);
+    const email: string = req.body.email;
+    const findUser = await UserModel.prisma.user.findUnique({
+      where: { email: email },
+    });
+    if (!findUser) {
+      throw new Error("Unregistered users");
+    }
+    return findUser;
+  }
+  async updatePassword(req: Request, res: Response) {
+    const email: string = req.body.email;
+    req.body.email = email;
+    const findUser: User = await this.getByUserEmail(req, res);
+    return await UserModel.prisma.user.update({
+      where: { email: findUser.email },
+      data: { password: req.body.password },
+    });
   }
   setUser(user: User): void {
     this.id = user.id;

@@ -5,19 +5,24 @@ import { UserModel } from "./user";
 import {
   validationEmployee,
   validationForgotPassword,
+  validationMatchPassword,
   validationUser,
 } from "../middlewares/validations";
 import { sendMailMessageVerification } from "../utils/sendMailMessage";
-import { MathRandomSixDigist } from "../utils/mathRandom";
+import { mathRandomSixDigist } from "../utils/mathRandom";
+import { ForgotPasswordModel } from "./forgotPassword";
+import { ForgotPassword } from "@prisma/client";
 
 const jwt = require("jsonwebtoken");
 
 export class Auth {
   private user: UserModel;
   private employe: EmployeModel;
+  private forgotPassword: ForgotPasswordModel;
   constructor() {
     this.user = new UserModel();
     this.employe = new EmployeModel();
+    this.forgotPassword = new ForgotPasswordModel();
   }
   async register(req: Request, res: Response): Promise<void> {
     try {
@@ -73,11 +78,63 @@ export class Auth {
       res.status(400).json({ status: 400, message: error.message });
     }
   }
-  async forgotPassword(req: Request, res: Response) {
+  async onForgotPassword(req: Request, res: Response) {
     try {
       validationForgotPassword(req, res);
-      const emailUser = req.body.email;
-      sendMailMessageVerification(emailUser, MathRandomSixDigist);
+      const findUser = await this.user.getByUserEmail(req, res);
+      const verifyCode = mathRandomSixDigist();
+      req.body.verificationCode = verifyCode;
+      req.body.userId = findUser.id;
+      sendMailMessageVerification(findUser.email, verifyCode);
+      const saveToDatabase = await this.forgotPassword.save(req, res);
+      res.status(200).json({
+        status: 200,
+        message: "Verification code sent to email successfully",
+        data: {
+          id: saveToDatabase.id,
+          email: saveToDatabase.email,
+          createdAt: saveToDatabase.createdAt,
+        },
+      });
+    } catch (err: any) {
+      res.status(400).json({ status: 400, message: err.message });
+    }
+  }
+  async verifyCodeForgotPassword(req: Request, res: Response) {
+    try {
+      const id: number = req.body.id;
+      const findHistory: ForgotPassword = await this.forgotPassword.getById(id);
+      if (!findHistory) {
+        throw new Error("History forgot not found");
+      }
+      req.body.userId = findHistory.id;
+      if (findHistory.verificationCode !== req.body.verificationCode) {
+        throw new Error("Verification code is wrong please input corectly");
+      }
+      res.status(200).json({ status: 200, message: "success verify" });
+      this.forgotPassword.update(req, res);
+    } catch (err: any) {
+      res.status(400).json({ status: 400, message: err.message });
+    }
+  }
+  async updatePassword(req: Request, res: Response) {
+    try {
+      validationMatchPassword(req, res);
+      const id: number = req.body.id;
+      const hash = await hashPassword(req.body.password);
+      req.body.password = hash;
+      const checkVerify = await this.forgotPassword.getById(id);
+      if (checkVerify.verifyStatus == true) {
+        await this.user.updatePassword(req, res);
+        res
+          .status(200)
+          .json({ status: 200, message: "success update password" });
+      } else {
+        res.status(400).json({
+          status: 400,
+          message: "failed update password because it has not been verified",
+        });
+      }
     } catch (err: any) {
       res.status(400).json({ status: 400, message: err.message });
     }

@@ -17,6 +17,7 @@ model User {
   password String
   role Role
   employe Employe?
+  forgotPasswords ForgotPassword[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -47,8 +48,11 @@ model ForgotPassword {
   id Int @id @default(autoincrement())
   email String
   verificationCode Int
-
-
+  user User @relation(fields: [userId], references: [id])
+  userId Int 
+  verifyStatus Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum Role {

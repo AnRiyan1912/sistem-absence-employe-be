@@ -45,7 +45,11 @@ export const validationEmployee = (req: Request, res: Response) => {
 };
 
 export const validationFindUserLoggin = (req: Request, res: Response) => {
-  if (req.body.usernameOrEmail == undefined || req.body.usernameOrEmail == "") {
+  if (
+    req.body.usernameOrEmail == undefined ||
+    req.body.usernameOrEmail == "" ||
+    req.body.usernameOrEmail == " "
+  ) {
     throw new Error("username is empety");
   }
   if (req.body.password == undefined || req.body.password == "") {
@@ -60,9 +64,48 @@ export const validationForgotPassword = (req: Request, res: Response) => {
     req.body.email == " " ||
     req.body.email == undefined
   ) {
-    throw new Error("Email invalid please input email correct");
+    throw new Error("Email required");
   }
   if (regexEmail.test(req.body.email) == false) {
     throw new Error("Email invalid please input email correct");
+  }
+};
+
+export const validationSaveFogotPassword = (req: Request, res: Response) => {
+  const { email, verificationCode, userId } = req.body;
+  if (email == " " || email == "" || email == undefined) {
+    throw new Error("Email required");
+  }
+  if (!verificationCode) {
+    throw new Error("Verification code is empety");
+  }
+  if (!userId) {
+    throw new Error("UserId is empety");
+  }
+};
+
+export const validationUpdateStatusVerify = (req: Request, res: Response) => {
+  const { id, email, verificationCode, userId, createdAt } = req.body;
+
+  if (!id) {
+    throw new Error("id is empty");
+  }
+  if (!email) {
+    throw new Error("email is empty");
+  }
+  if (!verificationCode) {
+    throw new Error("verificationCode is empty");
+  }
+  if (!userId) {
+    throw new Error("userId is empty");
+  }
+  if (!createdAt) {
+    throw new Error("createdAt is empty");
+  }
+};
+
+export const validationMatchPassword = (req: Request, res: Response) => {
+  if (req.body.password !== req.body.passwordAgain) {
+    throw new Error("Password not match");
   }
 };
