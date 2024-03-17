@@ -109,3 +109,32 @@ export const validationMatchPassword = (req: Request, res: Response) => {
     throw new Error("Password not match");
   }
 };
+
+export const validationAbsence = (req: Request, res: Response) => {
+  if (!req.body.absenceDate) {
+    throw new Error("absenceDate is required");
+  }
+  if (!req.body.entryTime) {
+    throw new Error("entryTime is required");
+  }
+  if (!req.body.exitTime) {
+    throw new Error("exitTime is required");
+  }
+  if (!req.body.information) {
+    throw new Error("information is required");
+  }
+};
+
+export const checkUtcTime = (dateReq: Date, columnName: string) => {
+  const isUTCTime =
+    dateReq.getUTCFullYear() == dateReq.getFullYear() &&
+    dateReq.getUTCMonth() == dateReq.getMonth() &&
+    dateReq.getUTCDate() == dateReq.getDate() &&
+    dateReq.getUTCHours() == dateReq.getHours() &&
+    dateReq.getUTCMinutes() == dateReq.getMinutes() &&
+    dateReq.getUTCSeconds() == dateReq.getSeconds();
+
+  if (!isUTCTime) {
+    throw new Error(columnName + "not time utc format");
+  }
+};

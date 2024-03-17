@@ -36,7 +36,7 @@ model Employe {
 
 model EmployeAbsence {
   id Int @id @default(autoincrement())
-  absenceDate DateTime @default(now())
+  absenceDate DateTime
   entryTime DateTime
   exitTime DateTime
   information Information
