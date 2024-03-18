@@ -123,6 +123,9 @@ export const validationAbsence = (req: Request, res: Response) => {
   if (!req.body.information) {
     throw new Error("information is required");
   }
+  if (!req.body.employeId) {
+    throw new Error("employeId is required");
+  }
 };
 
 export const checkUtcTime = (dateReq: Date, columnName: string) => {

@@ -17,6 +17,7 @@ app.use(express.json());
 app.use(cors({ origin: "http://localhost:5173" }));
 // app.use(authenticate);
 app.use("/auth", routes.authRoute);
+app.use("/absence_employe", routes.employeAbsenceRoute);
 app.get("/post", (req, res) => {
   res.send("INI content POST");
 });

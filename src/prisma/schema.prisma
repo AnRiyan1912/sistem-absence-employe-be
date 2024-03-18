@@ -30,6 +30,7 @@ model Employe {
   address String
   user User @relation(fields: [userId], references: [id])
   userId Int @unique
+  employeAbsence EmployeAbsence[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -40,6 +41,8 @@ model EmployeAbsence {
   entryTime DateTime
   exitTime DateTime
   information Information
+  employe Employe @relation(fields: [employeId], references: [id])
+  employeId Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
