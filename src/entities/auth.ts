@@ -108,17 +108,24 @@ export class Auth {
         throw new Error("History forgot not found");
       }
       req.body.userId = findHistory.id;
-      if (findHistory.verificationCode !== req.body.verificationCode) {
+
+      if (
+        findHistory.verificationCode !== parseInt(req.body.verificationCode)
+      ) {
         throw new Error("Verification code is wrong please input corectly");
       }
-      res.status(200).json({ status: 200, message: "success verify" });
       this.forgotPassword.update(req, res);
+      res.status(200).json({ status: 200, message: "success verify" });
     } catch (err: any) {
-      res.status(400).json({ status: 400, message: err.message });
+      res.status(400).json({
+        status: 400,
+        message: err.message,
+      });
     }
   }
   async updatePassword(req: Request, res: Response) {
     try {
+      validationForgotPassword(req, res);
       validationMatchPassword(req, res);
       const id: number = req.body.id;
       const hash = await hashPassword(req.body.password);

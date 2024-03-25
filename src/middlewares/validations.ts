@@ -85,19 +85,13 @@ export const validationSaveFogotPassword = (req: Request, res: Response) => {
 };
 
 export const validationUpdateStatusVerify = (req: Request, res: Response) => {
-  const { id, email, verificationCode, userId, createdAt } = req.body;
+  const { id, email, createdAt } = req.body;
 
   if (!id) {
     throw new Error("id is empty");
   }
   if (!email) {
     throw new Error("email is empty");
-  }
-  if (!verificationCode) {
-    throw new Error("verificationCode is empty");
-  }
-  if (!userId) {
-    throw new Error("userId is empty");
   }
   if (!createdAt) {
     throw new Error("createdAt is empty");
