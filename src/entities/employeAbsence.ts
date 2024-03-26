@@ -25,7 +25,6 @@ export class EmployeAbsenceModel extends Entity {
       );
 
       const dateReq = new Date(req.body.absenceDate);
-      console.log(dateReq);
       req.body.absenceDate = dateReq.toISOString();
       const [hours, minute] = req.body.entryTime;
       req.body.entryTime = new Date(
@@ -42,7 +41,7 @@ export class EmployeAbsenceModel extends Entity {
             entryTime: req.body.entryTime,
             exitTime: req.body.entryTime,
             information: req.body.information,
-            employeId: req.body.employeId,
+            employeId: findEmploye.id,
           },
         });
       res.status(200).json({
