@@ -3,7 +3,9 @@ import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 import { Entity } from "./entity";
 import { validationEmployee } from "../middlewares/validations";
-import { Employe } from "../models/employe";
+import { Employe, EmployeDetailResponse } from "../models/employe";
+import { EmployeImage } from "./employeImage";
+import { UserModel } from "./user";
 
 export class EmployeModel extends Entity {
   private id: number;
@@ -14,6 +16,8 @@ export class EmployeModel extends Entity {
   private userId: number;
   private createdAt: Date;
   private updatedAt: Date;
+  private employeImage: EmployeImage;
+  private user: UserModel;
   constructor() {
     super();
     this.id = 0;
@@ -24,6 +28,8 @@ export class EmployeModel extends Entity {
     this.userId = 0;
     this.createdAt = new Date();
     this.updatedAt = new Date();
+    this.employeImage = new EmployeImage();
+    this.user = new UserModel();
   }
   async save(
     req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>,
@@ -35,6 +41,7 @@ export class EmployeModel extends Entity {
       age: parseInt(req.body.age),
       address: req.body.address,
       userId: req.body.userId,
+      employeImageId: req.body.employeImageId,
     };
     const createEmploye = await EmployeModel.prisma.$transaction([
       EmployeModel.prisma.employe.create({
@@ -86,6 +93,30 @@ export class EmployeModel extends Entity {
       throw new Error("Employe not found with user id: " + id);
     }
     return findEmploye;
+  }
+  async getEmployeDetail(req: Request, res: Response): Promise<any> {
+    try {
+      const employeId = parseInt(req.params.id);
+      const findEmploye = await this.getById(employeId);
+      const findUser = await this.user.getById(findEmploye.userId);
+      const findImageEmploye = await this.employeImage.getById(findEmploye.id);
+      res.status(200).json({
+        data: {
+          id: findEmploye.id,
+          firstName: findEmploye.firstName,
+          lastName: findEmploye.lastName,
+          address: findEmploye.address,
+          age: findEmploye.age,
+          iamge: findImageEmploye,
+          user: findUser,
+          createdAt: findEmploye.createdAt,
+          updatedAt: findEmploye.updatedAt,
+        },
+        status: 200,
+      });
+    } catch (err: any) {
+      res.status(400).json({ message: err.message, status: 400 });
+    }
   }
   setEmploye(employe: Employe): void {
     this.id = employe.id;

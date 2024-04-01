@@ -18,9 +18,14 @@ app.use(cors({ origin: "http://localhost:5173" }));
 // app.use(authenticate);
 app.use("/auth", routes.authRoute);
 app.use("/absence_employe", routes.employeAbsenceRoute);
+app.use("/employe", routes.employeRoute);
 app.get("/post", (req, res) => {
   res.send("INI content POST");
 });
+app.use(
+  "/public/profiles",
+  express.static(`${__dirname}/public/images/profile`)
+);
 app.listen(PORT, () => {
   console.log("Your server running at port ", PORT);
 });

@@ -12,6 +12,7 @@ import { sendMailMessageVerification } from "../utils/sendMailMessage";
 import { mathRandomSixDigist } from "../utils/mathRandom";
 import { ForgotPasswordModel } from "./forgotPassword";
 import { ForgotPassword } from "@prisma/client";
+import { EmployeImage } from "./employeImage";
 
 const jwt = require("jsonwebtoken");
 
@@ -19,10 +20,12 @@ export class Auth {
   private user: UserModel;
   private employe: EmployeModel;
   private forgotPassword: ForgotPasswordModel;
+  private employeImage: EmployeImage;
   constructor() {
     this.user = new UserModel();
     this.employe = new EmployeModel();
     this.forgotPassword = new ForgotPasswordModel();
+    this.employeImage = new EmployeImage();
   }
   async register(req: Request, res: Response): Promise<void> {
     try {
@@ -31,7 +34,9 @@ export class Auth {
       await this.user.save(req, res);
       const responseCreateUser = this.user.getUser();
       req.body.userId = responseCreateUser.id;
-
+      req.body.url = req.file?.filename;
+      const responseCreateImage = await this.employeImage.save(req, res);
+      req.body.employeImageId = responseCreateImage.id;
       validationEmployee(req, res);
       await this.employe.save(req, res);
       const responseCreateEmploye = this.employe.getEmploye();
@@ -108,7 +113,6 @@ export class Auth {
         throw new Error("History forgot not found");
       }
       req.body.userId = findHistory.id;
-
       if (
         findHistory.verificationCode !== parseInt(req.body.verificationCode)
       ) {
@@ -172,4 +176,3 @@ export class Auth {
     }
   }
 }
-  
