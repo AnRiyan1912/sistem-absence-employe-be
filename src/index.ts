@@ -1,5 +1,6 @@
 import { Application } from "express";
 import { routes } from "./routes";
+import { preAutorize } from "./middlewares/auth";
 
 const express = require("express");
 const dotenv = require("dotenv");
@@ -19,8 +20,8 @@ app.use(cors({ origin: "http://localhost:5173" }));
 app.use("/auth", routes.authRoute);
 app.use("/absence_employe", routes.employeAbsenceRoute);
 app.use("/employe", routes.employeRoute);
-app.get("/post", (req, res) => {
-  res.send("INI content POST");
+app.get("/post", preAutorize("MANAGER"), (req, res) => {
+  res.status(200).json({ message: "success" });
 });
 app.use(
   "/public/profiles",
